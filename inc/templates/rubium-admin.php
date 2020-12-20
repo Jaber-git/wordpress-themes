@@ -1,4 +1,8 @@
 
 <h1>Rubium theme option </h1>
-<h3> Manage option</h3>
-<p> Customize the default wordpress option</p>
+<?php settings_errors() ;?>
+<form method="post" action="options.php">
+ <?php settings_fields('rubium-settings-group'); ?>
+ <?php do_settings_sections('abcd_rubium'); ?>
+ <?php submit_button(); ?>
+</form>
