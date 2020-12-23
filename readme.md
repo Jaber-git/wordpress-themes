@@ -1,184 +1,142 @@
 
-# WP Setting API <br>
+# Adding css file and retrieve data variable to render <br>
  ## Summary index
 
-1.[Administration Menus](#Administration-Menus)
-   - [Every Plot Needs a Hook](#Every-Plot-Needs-a-Hook)
+1.[Selectively enqueue a custom stylesheet in the admin](#Selectively-enqueue-a-custom-stylesheet-in-the-admin)
+   - [Enqueue stylesheet in rubium general page](#Enqueue-stylesheet-in-rubium-general-page)
      - Second nested list item <br>
 
-2.[Setting API](#Setting-API)
+2.[retrieve data variable](#retrieve-data-variable)
    - [Create a custom menu](#Create-a-custom-menu)
      - Second nested list item <br>
 
-### Administration Menus
+## Pretalk
+Enqueue means ***'To add an item to a queue'*** . 
+For css to add to admin page file .We have to register it by a hook called ```admin_enqueue_scripts``` action hook (``` do_action('admin_enqueue_scripts', $hook_suffix); ``` ) .  ```admin_enqueue_scripts``` is the proper hook to use when enqueuing **scripts and styles** that are meant to be used in the administration panel. Despite the name, it is used for enqueuing both **scripts and styles**. It has one additional argument, the $hook_suffix. This argument is exactly the same as the return value that you get from ``` add_submenu_page() ```  and the related (shorthand) functions. <br><br>
+ We should carefully code our callback so that css is not be applied to all admin page.
 
-Usually, plugin and theme authors need to provide access to a settings (options) screen so users can customize how the plugin or theme is used. The best way to present the user with such a screen is to create an administration menu item that allows the user to access that settings screen from all the Administration Screens. 
+## Selectively enqueue a custom stylesheet in the admin
+[Click here for details ](https://developer.wordpress.org/reference/hooks/admin_enqueue_scripts/#used-by) 
+What if you want to load CSS, JS to specific pages from your created menu and submenu? ( multiple pages )
+``` 
+function addPage()
+{
+global $customMenu, $customSubMenu;
+        /**
+         * Menu
+         */
+       $customMenu = add_menu_page( 'Custom Menu', 'Custom Menu', 'manage_options', 'custom-menu', 'customMenuPage', '', 10);
+        /**
+         * Sub Menu Pages
+         */
+        $customSubMenu = add_submenu_page( 'custom-menu', 'Settings', 'Settings', 'manage_options', 'settings', 'settings_page');
+}
+add_action( 'admin_menu', 'addPage');
+   
+/** Enqueue Stylesheets **/
+function enqueueAdminStyles( $hook)
+    {
+        global $customMenu, $customSubMenu;
+        $allowed = array( $customMenu, $customSubMenu);
+        if( !in_array( $hook, $allowed)  )
+        {
+            return;
+        }
+        wp_enqueue_style( '-main-', 'assets/admin/css/ucsi.css', '', '1');
+    }
+add_action( 'admin_enqueue_scripts', 'enqueueAdminStyles'); 
+```
 
-<table>
-<tr>
-  <th>General Functions </th>
-  <th>WordPress Administration Menus </th>
-</tr>
-<tr>
- <td>
+## Enqueue stylesheet in rubium general page
 
+```
+@rubium 1.0.0
+#################
+  admin enqueue functions
+#################
+*/
+
+function rubium_load_admin_scripts($hook){
+    if('toplevel_page_abcd_rubium' != $hook){
+  
+           return ;
+    }
+    wp_register_style('rubium_admin', get_template_directory_uri().'/css/rubium.admin.css',array(), '1.0.0','all');
+    wp_enqueue_style('rubium_admin');
+}
+
+ add_action('admin_enqueue_scripts','rubium_load_admin_scripts') ;
  ```
-   Menu Pages
-
-    add_menu_page()
-    add_object_page()
-    add_utility_page()
-    remove_menu_page()
-
-SubMenu Pages
-
-    add_submenu_page()
-    remove_submenu_page()
+## Retrieve data variable
+Now we can access all data variable in 
+admin page field data that we store earlier.
+because we include template file in mother function like 
 ```
-</td>
-<td>
- 
-```
-    add_dashboard_page()
-    add_posts_page()
-    add_media_page()
-    add_pages_page()
-    add_comments_page()
-    add_theme_page()
-    add_plugins_page()
-    add_users_page()
-    add_management_page()
-    add_options_page()
-```
-</td>
-</tr>
-</table>
-
-## Every Plot Needs a Hook
-
-To add an administration menu, you must do ***three things***:
-
-  1.  Create a function that contains the menu-building code ( ***Hook callback*** )
-  2. Register the above function using the admin_menu action hook. (If you are adding an admin menu for the Network, use network_admin_menu instead). ( ***Hook*** )
- 3. Create the HTML output for the page (screen) displayed when the menu item is clicked. ( ***Hook derived Callback template or 2nd callback*** . e.g. in (hook) callbak we call WP api function which has also a callback)
-	
-
-
-### Setting API
-The Settings API, added in WordPress 2.7, allows admin pages containing settings forms to be managed semi-automatically. It lets you define settings pages, sections within those pages and fields within the sections. <br><br>
-New settings pages can be registered along with ***sections and fields*** inside them. Existing settings pages can also be added to by registering new settings sections or fields inside of them.
-
-   <table>
-<tr>
-  <th> Function Reference </th>
-  <th></th>
-</tr>
-<tr>
- <td>
-
- ```
-  Setting Register/Unregister
-
-    register_setting()
-    unregister_setting()
-
-
-Options Form Rendering
-
-    settings_fields()
-    do_settings_sections()
-    do_settings_fields()
-
-	
-
-```
-</td>
-<td>
- 
-```
-Add Field/Section
-
-    add_settings_field()
-    add_settings_section()
-
-Errors
-
-    add_settings_error()
-    get_settings_errors()
-    settings_errors()
-```
-</td>
-</tr>
-</table>
-
-   - ![GitHub Logo](mdimg/admin_menu.png)
-
-
-#### Visual description 1.0 image-1.00
-
-## Create a custom menu 
--	I will create custom pages in adminbar in administration panel for general setting such as *input field* .
--	Newly generated admin menu is Rubium and icon seen left pic and a blank page right.
-- This is called parent page and settings is sub page.
--	For icon [click here]( https://www.flaticon.com/free-icon/diamond_940926)
-
-## WP Code drilling - 1.00  <br>
-```PHP
-// inc/function-admin.php
-<?php     
-class Robium_setup{
-
-  public function __construct(){
-       add_action('admin_menu', array($this,
-         'rubium_add_admin_page'));
-          }
-  public function rubium_add_admin_page(){
-      add_menu_page('rubium theme option','Rubium ' ,'manage_options' , 'abcd_rubium', 'robium_create_theme_page',  get_template_directory_uri().'/img/diamond.png',  110);
-      add_submenu_page('abcd_rubium','Rubium settings','Settings','manage_options','abcd_rubium_settings', 'rubium_theme_settings_page');}
-   }
-   //callback
-  function robium_create_theme_page(){
+function robium_create_theme_page(){
       //generation of admin page
+      require_once(get_template_directory().'/inc/templates/rubium-admin.php');
   }
-  function rubium_theme_settings_page(){
-    //generation of admin sub page
-   }
+  ```
+  Look the codes at template file 
+  ```
+ 
+<h1>Rubium theme option </h1>
+<?php settings_errors() ;?>
+<?php 
+    $firstName = esc_attr(get_option('first_name'));
+    $lasttName = esc_attr(get_option('last_name'));
+    $fullname= $firstName .' '. $lasttName;
+    $UserDesc = esc_attr(get_option('user_desc'));
 
-```
-## WP Code drilling details - 1.00  <br>
-
-- I will use separate file dir called 
-   ***inc/function-admin.php*** , 
-     use OOP and 
-- In function.php file
- give file directory path,
- ```php
- require get_template_directory().'/inc/function-admin.php';
- ```
-- add_action(‘admin_menu’,  array() ) is used in 
-constructor.
-
-## summary
-
-<table>
-<tr>
-  <th> Three steps </th>
-  <th></th>
-</tr>
-<tr>
- <td>
-
- ```
-  Add admin menu
-
-   1. action hook('admin_menu ', callback )
-   2. callback(){
-        register_setting(callback2)
-   }
+?>
+  <div class="rubium-sidebar-preview">
+     <div class="rubium-sidebar">
+         <h1 class="user-name"> <?php print $fullname; ?></h1>
+         <h2 class="rubium-description"><?php print $UserDesc ;?></h2>
+         <div class="icon-wrapper"> 
+         
+         </div>
+     </div>
+  </div>
    
 
 
-Options Form Rendering
+<form method="post" action="options.php" class="rubium-genral-form">
+ <?php settings_fields('rubium-settings-group'); ?>
+ <?php do_settings_sections('abcd_rubium'); ?>
+ <?php submit_button(); ?>
+</form>
+  
+   ```
+
+   Notice that we use css class here. Stylesheet rules in ```css/rubium.admin.css``` file works only for general admin page .
+
+## Details
+
+<table>
+<tr>
+  <th> Inside admin-header.php, there's the following set of hooks: </th>
+  <th></th>
+</tr>
+<tr>
+ <td>
+
+ ```
+1.  do_action('admin_enqueue_scripts', $hook_suffix);
+2.  do_action("admin_print_styles-$hook_suffix");
+3.  do_action('admin_print_styles');
+4.  do_action("admin_print_scripts-$hook_suffix");
+5.  do_action('admin_print_scripts');
+6.  do_action("admin_head-$hook_suffix");
+7.  do_action('admin_head');
+8.  do_action( 'in_admin_header' );
+9.  do_action( 'network_admin_notices' );
+10. do_action( 'user_admin_notices' );
+11. do_action( 'admin_notices' );
+12. do_action( 'all_admin_notices' );
+   
+
+
 
     
 

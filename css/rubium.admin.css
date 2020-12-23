@@ -1,0 +1,16 @@
+
+ /* #wpbody{ 
+     background-color:royalblue ;
+  }  */
+
+  .rubium-genral-form,
+  .rubium-sidebar-preview{
+      display: inline;
+      float:left;
+  }
+  .rubium-sidebar-preview{
+    width: 280px;
+    background-color:#1f1f1f1f;
+    padding: 20px;
+    margin-right:10px ;
+}

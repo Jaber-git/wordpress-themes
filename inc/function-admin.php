@@ -45,12 +45,14 @@
     //section creation 1st step
       register_setting('rubium-settings-group','first_name');
       register_setting('rubium-settings-group','last_name');
+      register_setting('rubium-settings-group','user_desc');
       register_setting('rubium-settings-group','twitter_handler','sanitize_twitter_handler');
       register_setting('rubium-settings-group','fb_handler');
       register_setting('rubium-settings-group','gg_handler');
     //section creation 2nd step
       add_settings_section('rubium-sidebar-options','sidebar options','rubium_sidebar_options','abcd_rubium' );
       add_settings_field('sidebar-name','Full Name','rubium_sidebar_name','abcd_rubium','rubium-sidebar-options');
+      add_settings_field('sidebar-description','User description','rubium_sidebar_description','abcd_rubium','rubium-sidebar-options');
       add_settings_field('sidebar-twitter','Twitter handler','rubium_sidebar_twitter','abcd_rubium','rubium-sidebar-options');
       add_settings_field('sidebar-google','Google handler','rubium_sidebar_google','abcd_rubium','rubium-sidebar-options');
       add_settings_field('sidebar-facebook','Facebook handler','rubium_sidebar_facebook','abcd_rubium','rubium-sidebar-options');
@@ -65,7 +67,11 @@
       echo '<input value="'.$firstName.'" name="first_name" placeholder="First name">';
       echo '<input value="'.$lasttName.'" name="last_name" placeholder="Last name">';
     }
-
+    function rubium_sidebar_description(){
+      $UserDesc = esc_attr(get_option('user_desc'));
+      echo '<input value="'.$UserDesc.'" name="user_desc"  placeholder="User Description">'; 
+      
+    }
     function rubium_sidebar_twitter(){
       $twitter = esc_attr(get_option('twitter_handler'));
       echo '<input value="'.$twitter.'" name="twitter_handler"  placeholder="twitter"> 
@@ -87,3 +93,5 @@
                          $output=   str_replace('@','',$output);
                          return  $output;
     }
+
+    
