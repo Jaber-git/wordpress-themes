@@ -43,6 +43,7 @@
 
   function rubium_custom_settings(){
     //section creation 1st step
+     register_setting('rubium-settings-group','profile_picture');
       register_setting('rubium-settings-group','first_name');
       register_setting('rubium-settings-group','last_name');
       register_setting('rubium-settings-group','user_desc');
@@ -51,6 +52,9 @@
       register_setting('rubium-settings-group','gg_handler');
     //section creation 2nd step
       add_settings_section('rubium-sidebar-options','sidebar options','rubium_sidebar_options','abcd_rubium' );
+     //media
+      add_settings_field('sidebar-profile','Profile picture','rubium_sidebar_profile','abcd_rubium','rubium-sidebar-options');
+
       add_settings_field('sidebar-name','Full Name','rubium_sidebar_name','abcd_rubium','rubium-sidebar-options');
       add_settings_field('sidebar-description','User description','rubium_sidebar_description','abcd_rubium','rubium-sidebar-options');
       add_settings_field('sidebar-twitter','Twitter handler','rubium_sidebar_twitter','abcd_rubium','rubium-sidebar-options');
@@ -60,6 +64,14 @@
 
   function rubium_sidebar_options(){
     echo 'customize your theme';
+    }
+    //media
+    function rubium_sidebar_profile(){
+      $picture= get_option('profile_picture');
+
+      echo '<input type="button" class="button button-secondary" value="upload profile picture" id="upload-button">
+      <input id="profile-picture" type="hidden" value="'. $picture.'" name="profile_picture" placeholder="Picture upload">';
+      $picture= esc_attr(get_option('profile_picture'));
     }
     function rubium_sidebar_name(){
       $firstName = esc_attr(get_option('first_name'));

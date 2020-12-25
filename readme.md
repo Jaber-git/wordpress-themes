@@ -1,164 +1,127 @@
-
-# Adding css file and retrieve data variable to render <br>
+# How to to Add a Custom Media Uploader Button in WordPress Admin<br>
  ## Summary index
 
-1.[Selectively enqueue a custom stylesheet in the admin](#Selectively-enqueue-a-custom-stylesheet-in-the-admin)
-   - [Enqueue stylesheet in rubium general page](#Enqueue-stylesheet-in-rubium-general-page)
-     - Second nested list item <br>
+1.[1. Upload Button HTML](#1.-Upload-Button-HTML)
+   - [2. JavaScript part](#2.-JavaScript-part)
+     - [3. Enqueue scripts into admin area using ```wp_enqueue_script()``` and ``` wp_enqueue_media()```](#Enqueue-scripts-into-admin-area)<br>
 
-2.[retrieve data variable](#retrieve-data-variable)
-   - [Create a custom menu](#Create-a-custom-menu)
-     - Second nested list item <br>
 
-## Pretalk
-Enqueue means ***'To add an item to a queue'*** . 
-For css to add to admin page file .We have to register it by a hook called ```admin_enqueue_scripts``` action hook (``` do_action('admin_enqueue_scripts', $hook_suffix); ``` ) .  ```admin_enqueue_scripts``` is the proper hook to use when enqueuing **scripts and styles** that are meant to be used in the administration panel. Despite the name, it is used for enqueuing both **scripts and styles**. It has one additional argument, the $hook_suffix. This argument is exactly the same as the return value that you get from ``` add_submenu_page() ```  and the related (shorthand) functions. <br><br>
- We should carefully code our callback so that css is not be applied to all admin page.
 
-## Selectively enqueue a custom stylesheet in the admin
-[Click here for details ](https://developer.wordpress.org/reference/hooks/admin_enqueue_scripts/#used-by) 
-What if you want to load CSS, JS to specific pages from your created menu and submenu? ( multiple pages )
-``` 
-function addPage()
-{
-global $customMenu, $customSubMenu;
-        /**
-         * Menu
-         */
-       $customMenu = add_menu_page( 'Custom Menu', 'Custom Menu', 'manage_options', 'custom-menu', 'customMenuPage', '', 10);
-        /**
-         * Sub Menu Pages
-         */
-        $customSubMenu = add_submenu_page( 'custom-menu', 'Settings', 'Settings', 'manage_options', 'settings', 'settings_page');
-}
-add_action( 'admin_menu', 'addPage');
-   
-/** Enqueue Stylesheets **/
-function enqueueAdminStyles( $hook)
-    {
-        global $customMenu, $customSubMenu;
-        $allowed = array( $customMenu, $customSubMenu);
-        if( !in_array( $hook, $allowed)  )
-        {
-            return;
-        }
-        wp_enqueue_style( '-main-', 'assets/admin/css/ucsi.css', '', '1');
+### Pretalk
+When you create some sort of [meta boxes](https://rudrastyh.com/wordpress/meta-boxes.html) or maybe a custom options page, sometimes you need fields like an image upload button or a file uploader.<br><br>
+there are 3 easy steps how to create an uploader button on your own.
+# 1. Upload Button HTML
+
+Our Html template file **templates/rubium-admin.php** is linked up or inluded in **inc/function-admin.php**(media input field is in it.) file which also linked up with **functions.php** file.<br> <br>
+![GitHub Logo](mdimg/custom-media.png)
+
+```
+function rubium_custom_settings(){
+    //section creation 1st step
+     register_setting('rubium-settings-group','profile_picture');
+      register_setting('rubium-settings-group','first_name');
+      register_setting('rubium-settings-group','last_name');
+      register_setting('rubium-settings-group','user_desc');
+      register_setting('rubium-settings-group','twitter_handler','sanitize_twitter_handler');
+      register_setting('rubium-settings-group','fb_handler');
+      register_setting('rubium-settings-group','gg_handler');
+    //section creation 2nd step
+      add_settings_section('rubium-sidebar-options','sidebar options','rubium_sidebar_options','abcd_rubium' );
+     //media
+      add_settings_field('sidebar-profile','Profile picture','rubium_sidebar_profile','abcd_rubium','rubium-sidebar-options');
+
+      add_settings_field('sidebar-name','Full Name','rubium_sidebar_name','abcd_rubium','rubium-sidebar-options');
+      add_settings_field('sidebar-description','User description','rubium_sidebar_description','abcd_rubium','rubium-sidebar-options');
+      add_settings_field('sidebar-twitter','Twitter handler','rubium_sidebar_twitter','abcd_rubium','rubium-sidebar-options');
+      add_settings_field('sidebar-google','Google handler','rubium_sidebar_google','abcd_rubium','rubium-sidebar-options');
+      add_settings_field('sidebar-facebook','Facebook handler','rubium_sidebar_facebook','abcd_rubium','rubium-sidebar-options');
     }
-add_action( 'admin_enqueue_scripts', 'enqueueAdminStyles'); 
+
+  function rubium_sidebar_options(){
+    echo 'customize your theme';
+    }
+    //media
+    function rubium_sidebar_profile(){
+      $picture= get_option('profile_picture');
+
+      echo '<input type="button" class="button button-secondary" value="upload profile picture" id="upload-button">
+      <input id="profile-picture" type="hidden" value="'. $picture.'" name="profile_picture" placeholder="Picture upload">';
+      $picture= esc_attr(get_option('profile_picture'));
+    } 
 ```
+To retrieve data into template file
+```
+<?php 
+//media
+   $picture= esc_attr(get_option('profile_picture'));
+   ...
 
-## Enqueue stylesheet in rubium general page
+?>
+ <div class="image-container">
+         <div id="profile-picture-preview" class="profile-picture" style=" background-image:url(<?php echo $picture; ?>); ">
+    
+          
+         </div>
+       </div>
+       ...
+       
+```
+# 2. JavaScript part
+
+Remember that you should register js in **enqueue.php** file
+```
+jQuery(document).ready( function($){
+   var mediaUploader;
+   $('#upload-button').click(function(e){
+    e.preventDefault();
+    if(mediaUploader){
+        mediaUploader.open();
+        return;
+    }
+
+   mediaUploader = wp.media.frames.file_frame = wp.media({
+         title: "Choose a profile picture",
+         button:
+         {
+             text: "Choose picture"
+         },
+         multiple:false,
+   });
+   mediaUploader.on('select',function(){
+   attachment=mediaUploader.state().get('selection').first().toJSON();
+   $('#profile-picture').val(attachment.url);
+   //to directly show on preview
+   $('#profile-picture-preview').css('background-image','url('+ attachment.url +')');
+   });
+
+   mediaUploader.open();
+   });
+});
 
 ```
-@rubium 1.0.0
-#################
-  admin enqueue functions
-#################
-*/
+ look this line ```attachment=mediaUploader.state().get('selection').first().toJSON();``` we got json data which we can use in php code : **templates/rubium-admin.php** is linked up or inluded in **inc/function-admin.php**.
+ this line ```$('#profile-picture-preview').css('background-image','url('+ attachment.url +')');```
+ dictact that when we upload image through our custom button ,we  immediately render in preview section. look into **templates/rubium-admin.php** file ,there is a class called ```profile-picture-preview``` .
+ # Enqueue scripts into admin area
+ in ```inc/enqueue.php``` file 
 
-function rubium_load_admin_scripts($hook){
+ ```
+ function rubium_load_admin_scripts($hook){
     if('toplevel_page_abcd_rubium' != $hook){
   
            return ;
     }
-    wp_register_style('rubium_admin', get_template_directory_uri().'/css/rubium.admin.css',array(), '1.0.0','all');
-    wp_enqueue_style('rubium_admin');
+    ...
+   // loading js
+   wp_register_script( 'ru-some-js', get_template_directory_uri().'/js/rubium.js', array('jquery'), '1.0.0', true );
+   wp_enqueue_script( 'ru-some-js' );
+   wp_enqueue_media();
 }
 
  add_action('admin_enqueue_scripts','rubium_load_admin_scripts') ;
- ```
-## Retrieve data variable
-Now we can access all data variable in 
-admin page field data that we store earlier.
-because we include template file in mother function like 
-```
-function robium_create_theme_page(){
-      //generation of admin page
-      require_once(get_template_directory().'/inc/templates/rubium-admin.php');
-  }
-  ```
-  Look the codes at template file 
-  ```
- 
-<h1>Rubium theme option </h1>
-<?php settings_errors() ;?>
-<?php 
-    $firstName = esc_attr(get_option('first_name'));
-    $lasttName = esc_attr(get_option('last_name'));
-    $fullname= $firstName .' '. $lasttName;
-    $UserDesc = esc_attr(get_option('user_desc'));
 
-?>
-  <div class="rubium-sidebar-preview">
-     <div class="rubium-sidebar">
-         <h1 class="user-name"> <?php print $fullname; ?></h1>
-         <h2 class="rubium-description"><?php print $UserDesc ;?></h2>
-         <div class="icon-wrapper"> 
-         
-         </div>
-     </div>
-  </div>
-   
-
-
-<form method="post" action="options.php" class="rubium-genral-form">
- <?php settings_fields('rubium-settings-group'); ?>
- <?php do_settings_sections('abcd_rubium'); ?>
- <?php submit_button(); ?>
-</form>
-  
-   ```
-
-   Notice that we use css class here. Stylesheet rules in ```css/rubium.admin.css``` file works only for general admin page .
-
-## Details
-
-<table>
-<tr>
-  <th> Inside admin-header.php, there's the following set of hooks: </th>
-  <th></th>
-</tr>
-<tr>
- <td>
 
  ```
-1.  do_action('admin_enqueue_scripts', $hook_suffix);
-2.  do_action("admin_print_styles-$hook_suffix");
-3.  do_action('admin_print_styles');
-4.  do_action("admin_print_scripts-$hook_suffix");
-5.  do_action('admin_print_scripts');
-6.  do_action("admin_head-$hook_suffix");
-7.  do_action('admin_head');
-8.  do_action( 'in_admin_header' );
-9.  do_action( 'network_admin_notices' );
-10. do_action( 'user_admin_notices' );
-11. do_action( 'admin_notices' );
-12. do_action( 'all_admin_notices' );
-   
 
 
-
-    
-
-	
-
-```
-</td>
-<td>
  
-```
-Add Field/Section
-
-    add_settings_field()
-    add_settings_section()
-
-Errors
-
-    add_settings_error()
-    get_settings_errors()
-    settings_errors()
-```
-</td>
-</tr>
-</table>
-

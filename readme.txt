@@ -9,3 +9,5 @@ tut-6
 
 we learn how to create inside an admin page a custom css
 how to retrieve bd data into template preview
+tut 7
+media uploader is built with js
