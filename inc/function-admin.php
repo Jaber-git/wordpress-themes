@@ -10,6 +10,8 @@
 
   add_action('admin_menu', 'rubium_add_admin_page');
   
+ //activate custom settengs
+ add_action('admin_init','rubium_custom_settings');
 
 
   function rubium_add_admin_page(){
@@ -22,14 +24,19 @@
     add_submenu_page('abcd_rubium','Rubium theme option',
     'General','manage_options','abcd_rubium', 
     'robium_create_theme_page');
+ //theme support option page
+ add_submenu_page('abcd_rubium', 'Rubium 
+         Theme Option' , 'Theme Options','manage_options' ,'abcd_rubium_theme',
+        'rubium_theme_support_page');
+
      //add submenu menu page  
     add_submenu_page('abcd_rubium','Rubium settings',
     'custom css','manage_options','abcd_rubium_css', 
     'rubium_theme_settings_page'
          );
-    //activate custom settengs
-    add_action('admin_init','rubium_custom_settings');
 
+         
+    
     }
 
  
@@ -40,10 +47,14 @@
   function rubium_theme_settings_page(){
     //generation of admin page
   }
-
+   
+   //template submenu page
+   function rubium_theme_support_page(){
+    require_once(get_template_directory().'/inc/templates/rubium-theme-support.php');
+     }
   function rubium_custom_settings(){
-    //section creation 1st step
-     register_setting('rubium-settings-group','profile_picture');
+    //Sidebar option
+      register_setting('rubium-settings-group','profile_picture');
       register_setting('rubium-settings-group','first_name');
       register_setting('rubium-settings-group','last_name');
       register_setting('rubium-settings-group','user_desc');
@@ -60,7 +71,44 @@
       add_settings_field('sidebar-twitter','Twitter handler','rubium_sidebar_twitter','abcd_rubium','rubium-sidebar-options');
       add_settings_field('sidebar-google','Google handler','rubium_sidebar_google','abcd_rubium','rubium-sidebar-options');
       add_settings_field('sidebar-facebook','Facebook handler','rubium_sidebar_facebook','abcd_rubium','rubium-sidebar-options');
-    }
+    //theme support options
+    register_setting( 'rubium-theme-support', 'post_formats');
+    register_setting( 'rubium-theme-support', 'custom_header');
+    register_setting( 'rubium-theme-support', 'custom_background');
+   
+    add_settings_section('rubium-theme-options', 'theme option', 'rubium_theme_options', 'abcd_rubium_theme');
+    
+    add_settings_field(  'post-formats', 'Post Formats', 'rubium_post_formats', 'abcd_rubium_theme', 'rubium-theme-options' );
+    add_settings_field( 'custom-header', 'Custom Header', 'rubium_custom_header', 'abcd_rubium_theme', 'rubium-theme-options' );
+    add_settings_field( 'custom-background', 'Custom Background', 'rubium_custom_background', 'abcd_rubium_theme', 'rubium-theme-options' );
+  }
+  //post format callback
+  
+  function rubium_theme_options(){
+    echo "acitate anf deactivate specific theme support options";
+  }
+ function rubium_post_formats(){
+   $options=  get_option('post_formats') ;
+   $formats=array('aside', 'gallery','link','image','quote','status','video','audio','chat');
+      $output='';
+   foreach($formats as $format){
+     $checked=(@$potions[$format]==1? 'checked' : '');
+   $output.= '<label> <input type="checkbox" id="'.$format.'"  name="post_formats['.$format.']" value="1" '.$checked.'> '.$format.'</label> <br>';
+               }
+  echo $output;
+  }
+  function rubium_custom_header() {
+    $options = get_option( 'custom_header' );
+    $checked = ( @$options == 1 ? 'checked' : '' );
+    echo '<label><input type="checkbox" id="custom_header" name="custom_header" value="1" '.$checked.' /> Activate the Custom Header</label>';
+  }
+  
+  function rubium_custom_background() {
+    $options = get_option( 'custom_background' );
+    $checked = ( @$options == 1 ? 'checked' : '' );
+    echo '<label><input type="checkbox" id="custom_background" name="custom_background" value="1" '.$checked.' /> Activate the Custom Background</label>';
+  }
+
 
   function rubium_sidebar_options(){
     echo 'customize your theme';
@@ -69,9 +117,11 @@
     function rubium_sidebar_profile(){
       $picture= get_option('profile_picture');
 
-      echo '<input type="button" class="button button-secondary" value="upload profile picture" id="upload-button">
-      <input id="profile-picture" type="hidden" value="'. $picture.'" name="profile_picture" placeholder="Picture upload">';
-      $picture= esc_attr(get_option('profile_picture'));
+      if( empty($picture) ){
+        echo '<input type="button" class="button button-secondary" value="Upload Profile Picture" id="upload-button"><input type="hidden" id="profile-picture" name="profile_picture" value="" />';
+      } else {
+        echo '<input type="button" class="button button-secondary" value="Replace Profile Picture" id="upload-button"><input type="hidden" id="profile-picture" name="profile_picture" value="'.$picture.'" /> <input type="button" class="button button-secondary" value="Remove" id="remove-picture">';
+      }
     }
     function rubium_sidebar_name(){
       $firstName = esc_attr(get_option('first_name'));
@@ -99,6 +149,8 @@
       echo '<input value="'.$facebook.'" name="fbtwitter_handler"  placeholder="facebook"> 
       <p class="description"> Input without @ charater.</p>';
     }
+    
+
     //sanitize
     function sanitize_twitter_handler($input){
                          $output=  sanitize_text_field($input);

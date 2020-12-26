@@ -33,5 +33,5 @@
 <form method="post" action="options.php" class="rubium-genral-form">
  <?php settings_fields('rubium-settings-group'); ?>
  <?php do_settings_sections('abcd_rubium'); ?>
- <?php submit_button(); ?>
+ <?php submit_button( 'Save Changes', 'primary', 'btnSubmit' ); ?>
 </form>

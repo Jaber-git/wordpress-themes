@@ -3,8 +3,9 @@
 require get_template_directory().'/inc/function-admin.php';
 
 require get_template_directory().'/inc/enqueue.php';
+require get_template_directory().'/inc/theme-support.php';
 
-
+add_theme_support( 'post-formats', array( 'aside', 'chat', 'gallery', 'image', 'link', 'quote', 'status', 'video', 'audio' ) );
 
 
 // remove specific dashboard menus for non-admin users
