@@ -10,7 +10,7 @@
 
   add_action('admin_menu', 'rubium_add_admin_page');
   
- //activate custom settengs
+ //activate custom settengs section
  add_action('admin_init','rubium_custom_settings');
 
 
@@ -28,7 +28,8 @@
  add_submenu_page('abcd_rubium', 'Rubium 
          Theme Option' , 'Theme Options','manage_options' ,'abcd_rubium_theme',
         'rubium_theme_support_page');
-
+ //contact form
+ add_submenu_page( 'abcd_rubium', 'rubium Contact Form', 'Contact Form', 'manage_options', 'abcd_rubium_theme_contact', 'rubium_contact_form_page' );
      //add submenu menu page  
     add_submenu_page('abcd_rubium','Rubium settings',
     'custom css','manage_options','abcd_rubium_css', 
@@ -51,6 +52,11 @@
    //template submenu page
    function rubium_theme_support_page(){
     require_once(get_template_directory().'/inc/templates/rubium-theme-support.php');
+     }
+
+     //form 
+     function rubium_contact_form_page(){
+      require_once(get_template_directory().'/inc/templates/rubium-contact-form.php');
      }
   function rubium_custom_settings(){
     //Sidebar option
@@ -81,11 +87,31 @@
     add_settings_field(  'post-formats', 'Post Formats', 'rubium_post_formats', 'abcd_rubium_theme', 'rubium-theme-options' );
     add_settings_field( 'custom-header', 'Custom Header', 'rubium_custom_header', 'abcd_rubium_theme', 'rubium-theme-options' );
     add_settings_field( 'custom-background', 'Custom Background', 'rubium_custom_background', 'abcd_rubium_theme', 'rubium-theme-options' );
+  //contact form option
+  register_setting( 'rubium-contact-options', 'activate_contact');
+ 
+	
+	add_settings_section( 'rubium-contact-section', 'Contact Form', 'rubium_contact_section', 'abcd_rubium_theme_contact');
+	
+	add_settings_field( 'activate-form', 'Activate Contact Form', 'rubium_activate_contact', 'abcd_rubium_theme_contact', 'rubium-contact-section' );
+  
+  }
+
+
+  //contact function 
+  function rubium_contact_section() {
+    echo 'Activate and Deactivate the Built-in Contact Form';
+  }
+  
+  function rubium_activate_contact() {
+    $options = get_option( 'activate_contact' );
+    $checked = ( @$options == 1 ? 'checked' : '' );
+    echo '<label><input type="checkbox" id="custom_header" name="activate_contact" value="1" '.$checked.' /></label>';
   }
   //post format callback
   
   function rubium_theme_options(){
-    echo "acitate anf deactivate specific theme support options";
+    echo "acitate and deactivate specific theme support options";
   }
  function rubium_post_formats(){
    $options=  get_option('post_formats') ;

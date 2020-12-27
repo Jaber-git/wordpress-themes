@@ -11,3 +11,8 @@ we learn how to create inside an admin page a custom css
 how to retrieve bd data into template preview
 tut 7
 media uploader is built with js
+tut11
+change cpt page structure (column adition in custom post type)
+fulname ,email ,message
+
+//metabox in cpt add new  page
