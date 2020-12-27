@@ -47,6 +47,7 @@
   }
   function rubium_theme_settings_page(){
     //generation of admin page
+    require_once(get_template_directory().'/inc/templates/rubium-custom-css.php');
   }
    
    //template submenu page
@@ -94,9 +95,27 @@
 	add_settings_section( 'rubium-contact-section', 'Contact Form', 'rubium_contact_section', 'abcd_rubium_theme_contact');
 	
 	add_settings_field( 'activate-form', 'Activate Contact Form', 'rubium_activate_contact', 'abcd_rubium_theme_contact', 'rubium-contact-section' );
-  
+  //Custom CSS Options
+	register_setting( 'rubium-custom-css-options', 'rubium_css', 'rubium_sanitize_custom_css' );
+	
+	add_settings_section( 'rubium-custom-css-section', 'Custom CSS', 'rubium_custom_css_section_callback', 'abcd_rubium_css' );
+	
+	add_settings_field( 'custom-css', 'Insert your Custom CSS', 'rubium_custom_css_callback', 'abcd_rubium_css', 'rubium-custom-css-section' );
   }
+//css option
+function rubium_custom_css_section_callback() {
+	echo 'Customize rubium Theme with your own CSS';
+}
 
+function rubium_custom_css_callback() {
+	$css = get_option( 'rubium_css' );
+	$css = ( empty($css) ? '/* rubium Theme Custom CSS */' : $css );
+	echo '<div id="customCss">'.$css.'</div><textarea id="sunset_css" name="rubium_css" style="display:none;visibility:hidden;">'.$css.'</textarea>';
+}
+function rubium_sanitize_custom_css( $input ){
+	$output = esc_textarea( $input );
+	return $output;
+}
 
   //contact function 
   function rubium_contact_section() {
