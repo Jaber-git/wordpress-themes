@@ -1,12 +1,18 @@
 <?php 
-
+require get_template_directory().'/inc/cleanup.php';
 require get_template_directory().'/inc/function-admin.php';
 
 require get_template_directory().'/inc/enqueue.php';
 require get_template_directory().'/inc/theme-support.php';
 require get_template_directory().'/inc/custom-post-type.php';
+require get_template_directory() . '/bootstrap-navwalker.php';
+
 add_theme_support( 'post-formats', array( 'aside', 'chat', 'gallery', 'image', 'link', 'quote', 'status', 'video', 'audio' ) );
 
+
+register_nav_menus( array(
+    'menu-1' => esc_html__( 'Primary', 'theme-textdomain' ),
+) );
 
 // remove specific dashboard menus for non-admin users
 // add_action( 'admin_menu', 'hide_admin_menus' );
